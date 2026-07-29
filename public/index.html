@@ -1,0 +1,1502 @@
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+  :root{
+    --bg:#F6F7F9; --panel:#FFFFFF; --panel-2:#F1F2F5; --border:#DFE2E8;
+    --text:#20242E; --dim:#6B7180;
+    --good:#3C7A6A; --warn:#A3771B; --bad:#A14A43; --accent:#3B5378;
+    --good-bg:rgba(60,122,106,.10); --warn-bg:rgba(163,119,27,.10); --bad-bg:rgba(161,74,67,.09); --accent-bg:rgba(59,83,120,.09);
+  }
+  *{box-sizing:border-box;}
+  #dash{
+    background:var(--bg); color:var(--text); font-family:'Inter',system-ui,sans-serif;
+    padding:26px; border-radius:12px; min-height:100%; border:1px solid var(--border);
+  }
+  #dash .mono{font-family:'IBM Plex Mono',monospace;}
+
+  .topbar{ display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px; margin-bottom:26px; }
+  .title-block .eyebrow{ font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:.13em; text-transform:uppercase; color:var(--dim); margin-bottom:5px; }
+  .title-block h1{margin:0; font-family:'Source Serif 4',serif; font-size:25px; font-weight:700; letter-spacing:-.01em; color:var(--text);}
+
+  .role-toggle{ display:flex; background:var(--panel-2); border:1px solid var(--border); border-radius:8px; padding:3px; gap:2px; height:36px; }
+  .role-toggle button{ border:none; background:transparent; color:var(--dim); font-family:'Inter'; font-size:13px; font-weight:600; padding:0 14px; border-radius:6px; cursor:pointer; }
+  .role-toggle button.active{background:var(--accent); color:#FFFFFF;}
+
+  .layout{display:flex; gap:20px; flex-wrap:wrap;}
+  .sidebar{ width:200px; flex-shrink:0; background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:14px; height:fit-content; }
+  .sidebar h3{font-size:11px; text-transform:uppercase; letter-spacing:.1em; color:var(--dim); margin:0 0 10px;}
+  .rep-item{ padding:9px 10px; border-radius:7px; cursor:pointer; font-size:13.5px; display:flex; justify-content:space-between; align-items:center; margin-bottom:2px; }
+  .rep-item:hover{background:var(--panel-2);}
+  .rep-item.selected{background:var(--accent); color:#FFFFFF; font-weight:600;}
+  .rep-item .del{opacity:.5; font-size:11px; padding:0 4px;}
+
+  .item-menu-wrap{ position:relative; }
+  .item-menu-btn{ background:none; border:none; color:var(--dim); font-size:15px; line-height:1; padding:2px 6px; border-radius:5px; cursor:pointer; }
+  .item-menu-btn:hover{background:var(--panel-2); color:var(--text);}
+  .item-menu{ position:absolute; top:100%; right:0; margin-top:4px; background:var(--panel); border:1px solid var(--border); border-radius:8px;
+    box-shadow:0 8px 20px rgba(20,22,28,.14); z-index:50; min-width:150px; overflow:hidden; }
+  .item-menu button{ display:block; width:100%; text-align:left; background:none; border:none; padding:9px 12px; font-size:12.5px; color:var(--text); cursor:pointer; }
+  .item-menu button:hover{background:var(--panel-2);}
+  .item-menu button.danger{color:var(--bad);}
+  .rep-item .del:hover{opacity:1;}
+  .add-rep{ margin-top:8px; width:100%; background:transparent; border:1px dashed var(--border); color:var(--dim); border-radius:7px; padding:8px; font-size:12.5px; cursor:pointer; }
+  .add-rep:hover{border-color:var(--accent); color:var(--accent);}
+
+  .store-item{ padding:9px 10px; border-radius:7px; cursor:pointer; font-size:13.5px; display:flex; justify-content:space-between; align-items:center; margin-bottom:2px; }
+  .store-item:hover{background:var(--panel-2);}
+  .store-item.selected{background:var(--panel-2); border:1px solid var(--accent); color:var(--accent); font-weight:600;}
+  .store-item .count{font-size:11px; color:var(--dim); font-family:'IBM Plex Mono';}
+  .store-item.selected .count{color:var(--accent);}
+
+  .modal-overlay{ position:fixed; inset:0; background:rgba(20,22,28,.45); display:flex; align-items:center; justify-content:center; z-index:1000; }
+  .modal-box{ background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:22px; width:320px; box-shadow:0 12px 32px rgba(20,22,28,.18); }
+  .modal-box h4{margin:0 0 16px; font-size:15px; font-weight:700; color:var(--text);}
+  .modal-box select, .modal-box input{ background:var(--panel-2); border:1px solid var(--border); color:var(--text); border-radius:6px; padding:8px 9px; font-family:'Inter'; font-size:13.5px; }
+  .modal-box input[type="checkbox"]{ background:none; border:none; padding:0; width:14px; height:14px; }
+  .modal-box select:focus, .modal-box input:focus{outline:none; border-color:var(--accent);}
+  .modal-actions{ display:flex; justify-content:flex-end; gap:8px; margin-top:18px; }
+  .modal-actions button{ border-radius:6px; padding:8px 14px; font-size:13px; cursor:pointer; border:1px solid var(--border); background:var(--panel); color:var(--text); }
+  .modal-actions button.primary{ background:var(--accent); border-color:var(--accent); color:#FFFFFF; font-weight:600; }
+
+  .main{flex:1; min-width:320px;}
+
+  .timeline-wrap{ margin-bottom:18px; }
+  .timeline-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+  .timeline-head h3{font-size:11px; text-transform:uppercase; letter-spacing:.1em; color:var(--dim); margin:0;}
+  .new-q-btn{ background:var(--panel); border:1px solid var(--border); color:var(--accent); border-radius:6px; padding:5px 10px; font-size:12px; cursor:pointer; }
+  .new-q-btn:hover{border-color:var(--accent); background:var(--accent-bg);}
+  .timeline{ display:flex; gap:10px; overflow-x:auto; padding-bottom:4px; }
+  .q-card{ min-width:175px; background:var(--panel); border:1px solid var(--border); border-radius:9px; padding:11px 12px; cursor:pointer; flex-shrink:0; }
+  .q-card.selected{border-color:var(--accent); box-shadow:0 0 0 1px var(--accent);}
+  .q-card.q-hidden{opacity:.55;}
+  .q-card-head{ display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:2px; }
+  .q-card .qlabel{font-weight:700; font-size:13.5px; color:var(--text);}
+  .q-card .qrange{font-family:'IBM Plex Mono'; font-size:10.5px; color:var(--dim); margin-bottom:8px;}
+  .pill{ display:inline-block; font-size:10px; font-family:'IBM Plex Mono'; padding:2px 7px; border-radius:20px; letter-spacing:.03em; }
+  .pill.active{background:var(--good-bg); color:var(--good);}
+  .pill.upcoming{background:var(--accent-bg); color:var(--accent);}
+  .pill.ended{background:var(--bad-bg); color:var(--bad);}
+  .lock-btn{ border:1px solid transparent; cursor:pointer; font-size:10px; font-family:'IBM Plex Mono'; white-space:nowrap;
+    letter-spacing:.03em; padding:2px 8px; border-radius:20px; font-weight:600; flex-shrink:0; }
+  .lock-btn.is-locked{ background:var(--bad-bg); color:var(--bad); border-color:rgba(161,74,67,.3); }
+  .lock-btn.is-unlocked{ background:var(--good-bg); color:var(--good); border-color:rgba(60,122,106,.3); }
+  .lock-btn:hover{ filter:brightness(0.95); }
+
+  .locked-banner{ background:var(--bad-bg); border:1px solid rgba(161,74,67,.3); color:var(--bad);
+    border-radius:8px; padding:10px 14px; font-size:13px; margin-bottom:14px; display:flex; align-items:center; gap:8px; }
+
+  .missing-prompt{ background:var(--warn-bg); border:1px solid rgba(163,119,27,.3); border-radius:9px; padding:14px 16px; margin-bottom:14px; }
+  .missing-prompt .mp-head{ display:flex; align-items:center; gap:8px; font-size:13.5px; color:var(--warn); font-weight:600; margin-bottom:10px; }
+  .missing-rows{ display:flex; flex-direction:column; gap:7px; }
+  .missing-row{ display:flex; align-items:center; gap:10px; }
+  .missing-row .mdate{ font-family:'IBM Plex Mono'; font-size:12.5px; color:var(--text); width:150px; flex-shrink:0; }
+  .missing-row input{ background:var(--panel); border:1px solid var(--border); color:var(--text); border-radius:6px; padding:6px 9px; font-family:'IBM Plex Mono'; font-size:13px; width:100px; }
+  .missing-row input:focus{outline:none; border-color:var(--warn);}
+
+  .setup-row{ display:flex; gap:12px; flex-wrap:wrap; background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:16px; margin-bottom:18px; }
+  .field{display:flex; flex-direction:column; gap:5px;}
+  .field label{font-size:11px; color:var(--dim); text-transform:uppercase; letter-spacing:.06em;}
+  .field input{ background:var(--panel-2); border:1px solid var(--border); color:var(--text); border-radius:6px; padding:7px 9px; font-family:'IBM Plex Mono'; font-size:13px; width:140px; }
+  .field input:disabled{opacity:.45; cursor:not-allowed;}
+  .field input:focus{outline:none; border-color:var(--accent);}
+  .lock-note{font-size:11.5px; color:var(--dim); align-self:center; margin-left:auto;}
+
+  .pace-track{ background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:20px 22px; margin-bottom:18px; }
+  .pace-track .lbl-row{display:flex; justify-content:space-between; flex-wrap:wrap; gap:4px 12px; font-size:11px; color:var(--dim); text-transform:uppercase; letter-spacing:.08em; margin-bottom:10px;}
+  .track{position:relative; height:12px; background:var(--panel-2); border-radius:6px; overflow:visible;}
+  .track .fill{position:absolute; top:0; left:0; height:100%; border-radius:6px; transition:width .3s;}
+  .track .marker{position:absolute; top:-4px; width:2px; height:20px; background:var(--text);}
+  .status-line{margin-top:22px; font-size:13.5px; display:flex; align-items:center; gap:8px; color:var(--text);}
+  .status-dot{width:8px; height:8px; border-radius:50%;}
+
+  .grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(220px,1fr)); gap:10px; }
+  .cell{ background:var(--panel); border:1px solid var(--border); border-radius:9px; padding:13px 14px; }
+  .cell .k{font-family:'IBM Plex Mono'; font-size:10.5px; color:var(--accent); letter-spacing:.05em;}
+  .cell .v{font-family:'IBM Plex Mono'; font-size:19px; font-weight:700; margin:5px 0 3px; color:var(--text);}
+  .cell .d{font-size:11.5px; color:var(--dim); line-height:1.35;}
+  .cell.hi .v{color:var(--good);}
+  .cell.lo .v{color:var(--bad);}
+
+  .summary-card{ background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:22px 24px; }
+  .summary-card .s-eyebrow{ font-family:'IBM Plex Mono'; font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; margin-bottom:10px; }
+  .summary-card.hi .s-eyebrow{color:var(--good);}
+  .summary-card.lo .s-eyebrow{color:var(--bad);}
+  .summary-card:not(.hi):not(.lo) .s-eyebrow{color:var(--warn);}
+  .summary-card p{ font-size:15.5px; line-height:1.75; margin:0; color:var(--text); }
+  .summary-card strong{font-weight:700;}
+  .summary-list{ margin:0; padding-left:20px; }
+  .summary-list li{ font-size:15px; line-height:1.7; color:var(--text); margin-bottom:6px; }
+  .summary-list li:last-child{margin-bottom:0;}
+  .summary-list strong{font-weight:700;}
+
+  @media (max-width:640px){
+    .sidebar{width:100%;}
+    .layout{flex-direction:column;}
+    .field input{width:110px;}
+  }
+</style>
+
+<div id="dash">
+  <div class="topbar">
+    <div class="title-block">
+      <div class="eyebrow">Quarterly pace tracker</div>
+      <h1>Scripts Dashboard</h1>
+    </div>
+    <div class="role-toggle" id="roleToggle">
+      <button data-role="rep" id="btnRep">Store view</button>
+      <button data-role="manager" id="btnManager">Manager view</button>
+    </div>
+  </div>
+
+  <div id="repSignedInWrap" style="margin-bottom:18px;"></div>
+
+  <div class="layout">
+    <div class="sidebar" id="sidebar" style="display:none;">
+      <div id="mgrLockWrap" style="margin-bottom:14px;"></div>
+      <h3>Locations</h3>
+      <div id="storeList"></div>
+      <button class="add-rep" id="addStoreBtn">+ Add location</button>
+
+      <div id="repsSection" style="margin-top:18px;">
+        <h3 id="repsHeading">Stores</h3>
+        <div id="repList"></div>
+        <button class="add-rep" id="addRepBtn">+ Add store profile</button>
+      </div>
+    </div>
+
+    <div class="main">
+      <div class="timeline-wrap" id="timelineWrap" style="display:none;">
+        <div class="timeline-head">
+          <h3>Quarter timeline</h3>
+          <button class="new-q-btn" id="newQBtn">+ New quarter</button>
+        </div>
+        <div class="timeline" id="timeline"></div>
+      </div>
+
+      <div id="lockedBannerWrap"></div>
+      <div id="missingWrap"></div>
+      <div id="repProfileWrap"></div>
+      <div class="setup-row" id="setupRow"></div>
+      <div id="manualEntryWrap"></div>
+      <div class="pace-track" id="paceTrack"></div>
+      <div id="metricsGrid"></div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="addRepModal" style="display:none;">
+    <div class="modal-box">
+      <h4>New store profile</h4>
+      <div class="field" style="width:100%;">
+        <label>Name</label>
+        <input type="text" id="newRepName" style="width:100%;" />
+      </div>
+      <div class="field" style="width:100%; margin-top:12px;">
+        <label>User ID (for login)</label>
+        <input type="text" id="newRepUserId" style="width:100%;" placeholder="e.g. jsmith" />
+      </div>
+      <div class="field" style="width:100%; margin-top:12px;">
+        <label>Link to location</label>
+        <select id="newRepStore" style="width:100%;"></select>
+      </div>
+      <div id="newRepError" style="color:var(--bad); font-size:12px; margin-top:8px; display:none;"></div>
+      <div class="modal-actions">
+        <button id="cancelAddRep">Cancel</button>
+        <button id="confirmAddRep" class="primary">Create profile</button>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="modal-overlay" id="confirmModal" style="display:none;">
+    <div class="modal-box">
+      <h4 id="confirmTitle">Are you sure?</h4>
+      <p id="confirmMsg" style="font-size:13.5px; color:var(--text); line-height:1.55; margin:0;"></p>
+      <div class="modal-actions">
+        <button id="confirmCancelBtn">Cancel</button>
+        <button id="confirmOkBtn" class="primary" style="background:var(--bad); border-color:var(--bad);">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="textPromptModal" style="display:none;">
+    <div class="modal-box">
+      <h4 id="promptTitle">Enter a name</h4>
+      <div class="field" style="width:100%;">
+        <input type="text" id="promptInput" style="width:100%;" />
+      </div>
+      <div class="modal-actions">
+        <button id="promptCancelBtn">Cancel</button>
+        <button id="promptOkBtn" class="primary">OK</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="emailModal" style="display:none;">
+    <div class="modal-box" style="width:400px;">
+      <h4>Choose what to include</h4>
+      <div id="emailItemsList" style="display:flex; flex-direction:column; gap:8px; max-height:150px; overflow-y:auto; margin-bottom:12px;"></div>
+      <label style="font-size:11px; color:var(--dim); text-transform:uppercase; letter-spacing:.06em;">Preview</label>
+      <textarea id="emailPreview" readonly style="width:100%; height:130px; margin-top:6px; background:var(--panel-2); border:1px solid var(--border); color:var(--text); border-radius:6px; padding:9px; font-family:'IBM Plex Mono'; font-size:12px; resize:vertical;"></textarea>
+      <div id="emailCopiedNote" style="font-size:11.5px; color:var(--good); margin-top:6px; display:none;">Copied to clipboard.</div>
+      <div class="modal-actions">
+        <button id="emailCancelBtn">Close</button>
+        <button id="emailCopyBtn">Copy text</button>
+        <a id="emailMailtoLink" href="#" class="primary" style="text-decoration:none; display:inline-flex; align-items:center; padding:8px 14px; border-radius:6px; font-size:13px; font-weight:600; background:var(--accent); color:#FFFFFF; border:1px solid var(--accent);">Open in email app</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  let role = 'rep';
+  let stores = [];
+  let reps = [];
+  let selectedStoreId = null;
+  let selectedRepId = null;
+  let selectedQId = null;
+  let openMenuFor = null; // e.g. 'store:store_123' or 'rep:rep_456' — which options menu is open
+  let obEditModeForQId = null; // quarter id currently showing the editable starting-point form
+  let myUserId = null; // the User ID entered in Store view's login screen, on this browser
+  let managerPassword = null; // shared password gating Manager view (null = not set up yet)
+  let mgrAuthed = false; // whether this browser has unlocked Manager view
+  const defaultStoreId = 'store_default';
+
+  function todayISO(){ return new Date().toISOString().slice(0,10); }
+  function quarterOf(d){ return Math.floor(d.getMonth()/3); }
+  function quarterLabel(startStr){
+    const d = new Date(startStr);
+    return 'Q' + (quarterOf(d)+1) + ' ' + d.getFullYear();
+  }
+  function defaultQuarterRange(offset=0){
+    const d = new Date();
+    let q = quarterOf(d) + offset;
+    let year = d.getFullYear();
+    while (q < 0){ q += 4; year -= 1; }
+    while (q > 3){ q -= 4; year += 1; }
+    const start = new Date(year, q*3, 1);
+    const end = new Date(year, q*3+3, 0);
+    return { start: start.toISOString().slice(0,10), end: end.toISOString().slice(0,10) };
+  }
+  function newQuarterObj(offset=0){
+    const r = defaultQuarterRange(offset);
+    return { id:'q_'+Date.now()+'_'+Math.random().toString(36).slice(2,6), label:quarterLabel(r.start),
+      start:r.start, end:r.end, goal:300, dailyLog:{}, asOf:todayISO(), locked:false, hidden:false, openingBalance:null };
+  }
+
+  function migrateRep(r){
+    if (!r.quarters){
+      r.quarters = [{
+        id:'q_'+Date.now(), label:quarterLabel(r.quarterStart || todayISO()),
+        start:r.quarterStart, end:r.quarterEnd, goal:r.goal, dailyLog:{},
+        asOf:r.asOf, locked:false, hidden:false, openingBalance:null
+      }];
+      if (r.scriptsSoFar) r.quarters[0].dailyLog[r.asOf || todayISO()] = Number(r.scriptsSoFar) || 0;
+      delete r.quarterStart; delete r.quarterEnd; delete r.goal; delete r.scriptsSoFar; delete r.asOf;
+    }
+    r.quarters.forEach(q => {
+      if (!q.dailyLog){
+        q.dailyLog = {};
+        if (q.scriptsSoFar){ q.dailyLog[q.asOf || todayISO()] = Number(q.scriptsSoFar) || 0; }
+        delete q.scriptsSoFar;
+      }
+      if (q.openingBalance === undefined) q.openingBalance = null;
+      if (q.hidden === undefined) q.hidden = false;
+    });
+    if (r.userId === undefined) r.userId = null;
+  }
+
+  function getMyRep(){ return myUserId ? reps.find(r => r.userId === myUserId) : null; }
+
+
+  async function init(){
+    try {
+      const roleRes = await window.storage.get('ui-role', false);
+      if (roleRes && roleRes.value) role = roleRes.value;
+    } catch(e){}
+
+    try {
+      const uidRes = await window.storage.get('my-user-id', false);
+      if (uidRes && uidRes.value) myUserId = uidRes.value;
+    } catch(e){}
+
+    try {
+      const pwRes = await window.storage.get('manager-password', true);
+      if (pwRes && pwRes.value) managerPassword = pwRes.value;
+    } catch(e){}
+
+    try {
+      const authRes = await window.storage.get('mgr-authed', false);
+      mgrAuthed = !!(authRes && authRes.value === 'true');
+    } catch(e){}
+
+    try {
+      const storesRes = await window.storage.get('stores-list', true);
+      stores = storesRes ? JSON.parse(storesRes.value) : [];
+    } catch(e){ stores = []; }
+    if (stores.length === 0){
+      stores = [{ id: defaultStoreId, name: 'Main Store' }];
+    }
+
+    try {
+      const listRes = await window.storage.get('reps-list', true);
+      reps = listRes ? JSON.parse(listRes.value) : [];
+    } catch(e){ reps = []; }
+
+    if (reps.length === 0){
+      reps = [{ id: 'rep_demo', name:'Demo Store', storeId: stores[0].id, userId:'demo', quarters:[newQuarterObj(0)] }];
+    }
+    reps.forEach(migrateRep);
+    reps.forEach(r => { if (!r.storeId) r.storeId = stores[0].id; }); // link any legacy profile to a store
+    await persistStores();
+    await persistList();
+
+    selectedStoreId = stores[0].id;
+    if (role === 'rep'){
+      const myRep = getMyRep();
+      if (myRep) selectedStoreId = myRep.storeId;
+    } else {
+      const firstInStore = reps.find(r => r.storeId === selectedStoreId);
+      selectedRepId = firstInStore ? firstInStore.id : (reps[0] ? reps[0].id : null);
+    }
+    pickDefaultQuarter();
+    render();
+  }
+
+  async function persistList(){
+    try { await window.storage.set('reps-list', JSON.stringify(reps), true); }
+    catch(e){ console.error('save failed', e); }
+  }
+  async function persistStores(){
+    try { await window.storage.set('stores-list', JSON.stringify(stores), true); }
+    catch(e){ console.error('save failed', e); }
+  }
+  async function persistRole(){
+    try { await window.storage.set('ui-role', role, false); } catch(e){}
+  }
+  async function persistMyUserId(){
+    try {
+      if (myUserId) await window.storage.set('my-user-id', myUserId, false);
+      else await window.storage.delete('my-user-id', false);
+    } catch(e){}
+  }
+  async function persistManagerPassword(){
+    try { await window.storage.set('manager-password', managerPassword, true); } catch(e){}
+  }
+  async function persistMgrAuthed(){
+    try { await window.storage.set('mgr-authed', mgrAuthed ? 'true' : 'false', false); } catch(e){}
+  }
+
+
+  function getRep(id){ return reps.find(r => r.id === id); }
+  function getQuarter(rep, id){ return rep ? rep.quarters.find(q => q.id === id) : null; }
+
+  function quarterStatus(q){
+    const today = todayISO();
+    if (today < q.start) return 'upcoming';
+    if (today > q.end) return 'ended';
+    return 'active';
+  }
+
+  function defaultQuarterForRep(rep){
+    if (!rep || rep.quarters.length === 0) return null;
+    const visible = rep.quarters.filter(q => !q.hidden);
+    const pool = visible.length ? visible : rep.quarters; // fall back to hidden ones rather than showing nothing
+    const sorted = [...pool].sort((a,b)=> a.start.localeCompare(b.start));
+    const active = sorted.find(q => quarterStatus(q) === 'active');
+    if (active) return active;
+    const ended = sorted.filter(q => quarterStatus(q) === 'ended');
+    if (ended.length) return ended[ended.length-1];
+    return sorted[0];
+  }
+
+  function pickDefaultQuarter(){
+    const rep = getRep(selectedRepId);
+    const q = defaultQuarterForRep(rep);
+    selectedQId = q ? q.id : null;
+  }
+
+  function updateQuarter(repId, qId, patch){
+    const rep = getRep(repId); const q = getQuarter(rep, qId);
+    if (!q) return;
+    Object.assign(q, patch);
+    persistList();
+    render();
+  }
+
+  function updateRep(repId, patch){
+    const rep = getRep(repId);
+    if (!rep) return;
+    Object.assign(rep, patch);
+    persistList();
+    render();
+  }
+
+  function updateDailyLog(repId, qId, dateStr, value){
+    const rep = getRep(repId); const q = getQuarter(rep, qId);
+    if (!q) return;
+    if (!q.dailyLog) q.dailyLog = {};
+    q.dailyLog[dateStr] = Number(value) || 0;
+    persistList();
+    render();
+  }
+
+  function daysBetween(a,b){ return Math.round((b - a) / 86400000); }
+  function isWeekend(d){ const day = d.getDay(); return day === 0 || day === 6; }
+
+  function countBusinessDays(start, end){
+    if (end < start) return 0;
+    let count = 0;
+    const cur = new Date(start);
+    while (cur <= end){
+      if (!isWeekend(cur)) count++;
+      cur.setDate(cur.getDate() + 1);
+    }
+    return count;
+  }
+
+  function businessDaysInRange(start, end){
+    const out = [];
+    if (end < start) return out;
+    const cur = new Date(start);
+    while (cur <= end){
+      if (!isWeekend(cur)) out.push(cur.toISOString().slice(0,10));
+      cur.setDate(cur.getDate() + 1);
+    }
+    return out;
+  }
+
+  function sumDailyLog(q){
+    return Object.values(q.dailyLog || {}).reduce((a,b) => a + (Number(b) || 0), 0);
+  }
+
+  function openingAmount(q){
+    return (q.openingBalance && q.openingBalance.amount) ? Number(q.openingBalance.amount) || 0 : 0;
+  }
+
+  function missingDays(q){
+    const start = new Date(q.start), end = new Date(q.end), today = new Date(todayISO());
+    const checkEnd = today < end ? new Date(today.getTime() - 86400000) : end;
+    if (checkEnd < start) return [];
+    // days already covered by a catch-up starting point don't need individual backfill
+    const coveredThrough = (q.openingBalance && q.openingBalance.throughDate) ? new Date(q.openingBalance.throughDate) : null;
+    const rangeStart = (coveredThrough && coveredThrough >= start) ? new Date(coveredThrough.getTime() + 86400000) : start;
+    if (checkEnd < rangeStart) return [];
+    return businessDaysInRange(rangeStart, checkEnd).filter(d => !(d in (q.dailyLog || {})));
+  }
+
+  function calc(q){
+    const start = new Date(q.start), end = new Date(q.end), asOf = new Date(q.asOf || todayISO());
+    const totalDays = Math.max(daysBetween(start,end) + 1, 1);
+
+    const totalBizDays = Math.max(countBusinessDays(start, end), 1);
+    const cappedAsOf = asOf < start ? start : (asOf > end ? end : asOf);
+    const P2 = asOf < start ? 0 : countBusinessDays(start, cappedAsOf);
+    const remainingBizDays = Math.max(totalBizDays - P2, 0);
+
+    const C2 = Number(q.goal) || 0;
+    const B2 = C2 * 1.05;
+    const D2 = sumDailyLog(q) + openingAmount(q);
+    const E2 = B2 > 0 ? (D2 / B2) * 100 : 0;
+    const F2 = C2 > 0 ? (D2 / C2) * 100 : 0;
+    const G2 = (P2 / totalBizDays) * 100;
+    const H2 = B2 / totalBizDays;
+    const I2 = C2 / totalBizDays;
+    const J2 = P2 > 0 ? D2 / P2 : 0;
+    const K2 = J2 - I2;
+    const L2 = B2 - D2;
+    const M2 = remainingBizDays > 0 ? L2 / remainingBizDays : null;
+    const N2 = C2 - D2;
+    const O2 = remainingBizDays > 0 ? N2 / remainingBizDays : null;
+
+    return { totalDays, totalBizDays, P2, remainingBizDays, B2,C2,D2,E2,F2,G2,H2,I2,J2,K2,L2,M2,N2,O2 };
+  }
+
+  function fmt(n, d=1){ if (n===null||n===undefined||!isFinite(n)) return '—'; return n.toLocaleString(undefined,{minimumFractionDigits:d,maximumFractionDigits:d}); }
+  function fmtInt(n){ if (n===null||n===undefined||!isFinite(n)) return '—'; return Math.round(n).toLocaleString(); }
+
+  function render(){
+    document.getElementById('btnRep').className = role === 'rep' ? 'active' : '';
+    document.getElementById('btnManager').className = role === 'manager' ? 'active' : '';
+    document.getElementById('sidebar').style.display = role === 'manager' ? 'block' : 'none';
+
+    if (role === 'rep'){
+      const myRep = getMyRep();
+      if (myRep){ selectedRepId = myRep.id; selectedStoreId = myRep.storeId; }
+    } else {
+      document.getElementById('repSignedInWrap').innerHTML = '';
+    }
+
+    if (role === 'manager'){
+      if (!managerPassword){
+        document.getElementById('sidebar').style.display = 'none';
+        document.getElementById('timelineWrap').style.display = 'none';
+        renderSetManagerPassword(); return;
+      }
+      if (!mgrAuthed){
+        document.getElementById('sidebar').style.display = 'none';
+        document.getElementById('timelineWrap').style.display = 'none';
+        renderManagerPasswordGate(); return;
+      }
+      renderMgrLock();
+      renderStoreList();
+      renderRepList();
+      if (selectedStoreId === 'ALL' && !selectedRepId){
+        document.getElementById('timelineWrap').style.display = 'none';
+        clearMain();
+        renderAggregate();
+        return;
+      }
+    }
+    document.getElementById('newQBtn').style.display = role === 'manager' ? 'inline-block' : 'none';
+
+    if (role === 'rep'){
+      if (!myUserId){
+        document.getElementById('repSignedInWrap').innerHTML = '';
+        document.getElementById('timelineWrap').style.display = 'none';
+        renderLogin(); return;
+      }
+      const rep = getMyRep();
+      if (!rep){
+        document.getElementById('repSignedInWrap').innerHTML = '';
+        document.getElementById('timelineWrap').style.display = 'none';
+        renderNoProfile(); return;
+      }
+    } else if (!getRep(selectedRepId)){
+      const inStore = reps.find(r => r.storeId === selectedStoreId);
+      selectedRepId = inStore ? inStore.id : (reps[0] ? reps[0].id : null);
+    }
+    const rep = getRep(selectedRepId);
+    if (!rep){ document.getElementById('timelineWrap').style.display = 'none'; clearMain(); return; }
+
+    if (role === 'rep') renderRepSignedIn(rep);
+
+    document.getElementById('timelineWrap').style.display = 'block';
+    renderTimeline(rep, role === 'manager');
+    if (!getQuarter(rep, selectedQId)) pickDefaultQuarter();
+    const q = getQuarter(rep, selectedQId);
+    if (!q){ clearMain(); return; }
+
+    renderLockedBanner(q);
+    renderMissingPrompt(rep, q);
+    const m = calc(q);
+    renderRepProfile(rep, q, m);
+    renderSetup(rep, q);
+    renderTrack(q, m);
+    if (role === 'rep'){
+      renderFriendlySummary(q, m, rep);
+    } else {
+      renderGrid(m);
+    }
+  }
+
+  function clearMain(){
+    document.getElementById('timeline').innerHTML = '';
+    document.getElementById('lockedBannerWrap').innerHTML = '';
+    document.getElementById('missingWrap').innerHTML = '';
+    document.getElementById('repProfileWrap').innerHTML = '';
+    document.getElementById('setupRow').innerHTML = '';
+    document.getElementById('manualEntryWrap').innerHTML = '';
+    document.getElementById('paceTrack').innerHTML = '';
+    document.getElementById('metricsGrid').innerHTML = '';
+  }
+
+  function renderSetManagerPassword(){
+    clearMain();
+    document.getElementById('metricsGrid').innerHTML = `
+      <div class="summary-card">
+        <div class="s-eyebrow">Set up Manager view</div>
+        <p style="font-size:14.5px; color:var(--text); line-height:1.6; margin-bottom:14px;">
+          No password is set yet. Choose one now — anyone with this password will be able to open Manager view, so share it only with people who should have full access.
+        </p>
+        <div class="field" style="width:100%; margin-bottom:10px;">
+          <label>New password</label>
+          <input type="password" id="setPw1" style="width:100%;" />
+        </div>
+        <div class="field" style="width:100%; margin-bottom:10px;">
+          <label>Confirm password</label>
+          <input type="password" id="setPw2" style="width:100%;" />
+        </div>
+        <div id="setPwError" style="color:var(--bad); font-size:12px; margin-bottom:10px; display:none;"></div>
+        <button class="new-q-btn" id="setPwBtn" style="padding:8px 16px;">Set password</button>
+      </div>
+    `;
+    document.getElementById('setPwBtn').addEventListener('click', () => {
+      const p1 = document.getElementById('setPw1').value;
+      const p2 = document.getElementById('setPw2').value;
+      const errEl = document.getElementById('setPwError');
+      if (!p1){ errEl.textContent = 'Enter a password.'; errEl.style.display = 'block'; return; }
+      if (p1 !== p2){ errEl.textContent = "Passwords don't match."; errEl.style.display = 'block'; return; }
+      managerPassword = p1;
+      mgrAuthed = true;
+      persistManagerPassword();
+      persistMgrAuthed();
+      render();
+    });
+  }
+
+  function renderManagerPasswordGate(){
+    clearMain();
+    document.getElementById('metricsGrid').innerHTML = `
+      <div class="summary-card">
+        <div class="s-eyebrow">Manager view is locked</div>
+        <p style="font-size:14.5px; color:var(--text); line-height:1.6; margin-bottom:14px;">
+          Enter the manager password to continue.
+        </p>
+        <div style="display:flex; gap:8px;">
+          <input type="password" id="mgrPwInput" placeholder="Password" style="flex:1; background:var(--panel-2); border:1px solid var(--border); color:var(--text); border-radius:6px; padding:9px 11px; font-family:'IBM Plex Mono'; font-size:13.5px;" />
+          <button class="new-q-btn" id="mgrPwSubmit" style="padding:0 16px;">Unlock</button>
+        </div>
+        <div id="mgrPwError" style="color:var(--bad); font-size:12px; margin-top:8px; display:none;">Incorrect password.</div>
+      </div>
+    `;
+    const input = document.getElementById('mgrPwInput');
+    function submit(){
+      if (input.value === managerPassword){
+        mgrAuthed = true;
+        persistMgrAuthed();
+        render();
+      } else {
+        document.getElementById('mgrPwError').style.display = 'block';
+      }
+    }
+    document.getElementById('mgrPwSubmit').addEventListener('click', submit);
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') submit(); });
+    input.focus();
+  }
+
+  function renderMgrLock(){
+    const wrap = document.getElementById('mgrLockWrap');
+    wrap.innerHTML = `
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="new-q-btn" id="mgrLockBtn" style="font-size:11px; padding:4px 9px;">Lock manager view</button>
+        <button class="new-q-btn" id="mgrChangePwBtn" style="font-size:11px; padding:4px 9px;">Change password</button>
+      </div>
+    `;
+    document.getElementById('mgrLockBtn').addEventListener('click', () => {
+      mgrAuthed = false;
+      persistMgrAuthed();
+      render();
+    });
+    document.getElementById('mgrChangePwBtn').addEventListener('click', () => {
+      managerPassword = null;
+      mgrAuthed = false;
+      persistManagerPassword();
+      persistMgrAuthed();
+      render();
+    });
+  }
+
+  function renderLogin(){
+    clearMain();
+    document.getElementById('metricsGrid').innerHTML = `
+      <div class="summary-card">
+        <div class="s-eyebrow">Sign in</div>
+        <p style="font-size:14.5px; color:var(--text); line-height:1.6; margin-bottom:14px;">
+          Enter the User ID your manager assigned you to see your store's data.
+        </p>
+        <div style="display:flex; gap:8px;">
+          <input type="text" id="loginUserId" placeholder="e.g. jsmith" style="flex:1; background:var(--panel-2); border:1px solid var(--border); color:var(--text); border-radius:6px; padding:9px 11px; font-family:'IBM Plex Mono'; font-size:13.5px;" />
+          <button class="new-q-btn" id="loginSubmit" style="padding:0 16px;">Continue</button>
+        </div>
+      </div>
+    `;
+    const input = document.getElementById('loginUserId');
+    function submit(){
+      const val = input.value.trim();
+      if (!val) return;
+      myUserId = val;
+      persistMyUserId();
+      render();
+    }
+    document.getElementById('loginSubmit').addEventListener('click', submit);
+    input.addEventListener('keydown', e => { if (e.key === 'Enter') submit(); });
+    input.focus();
+  }
+
+  function renderNoProfile(){
+    clearMain();
+    document.getElementById('metricsGrid').innerHTML = `
+      <div class="summary-card">
+        <div class="s-eyebrow">No profile found</div>
+        <p style="font-size:14.5px; color:var(--dim); line-height:1.6;">
+          No store profile is linked to User ID "<strong style="color:var(--text);">${myUserId}</strong>" — check with your manager to have it set up.
+        </p>
+        <button class="new-q-btn" id="noProfileSwitch" style="margin-top:14px;">Try a different User ID</button>
+      </div>
+    `;
+    document.getElementById('noProfileSwitch').addEventListener('click', () => {
+      myUserId = null;
+      persistMyUserId();
+      render();
+    });
+  }
+
+  function renderStoreList(){
+    const list = document.getElementById('storeList');
+    list.innerHTML = '';
+    document.getElementById('addStoreBtn').style.display = 'block';
+
+    const allDiv = document.createElement('div');
+    allDiv.className = 'store-item' + (selectedStoreId === 'ALL' ? ' selected' : '');
+    allDiv.innerHTML = `<span>All Locations (combined)</span><span class="count">${reps.length}</span>`;
+    allDiv.addEventListener('click', () => {
+      selectedStoreId = 'ALL';
+      selectedRepId = null;
+      openMenuFor = null;
+      render();
+    });
+    list.appendChild(allDiv);
+
+    stores.forEach(s => {
+      const count = reps.filter(r => r.storeId === s.id).length;
+      const menuKey = 'store:' + s.id;
+      const div = document.createElement('div');
+      div.className = 'store-item' + (s.id === selectedStoreId ? ' selected' : '');
+      div.innerHTML = `
+        <span style="display:flex; align-items:center; gap:8px;"><span>${s.name}</span><span class="count">${count}</span></span>
+        <span class="item-menu-wrap">
+          <button class="item-menu-btn" data-menu="${menuKey}" title="Options">⋯</button>
+          ${openMenuFor === menuKey ? `
+            <div class="item-menu">
+              <button class="danger" data-action="remove-store" data-id="${s.id}">Remove location…</button>
+            </div>` : ''}
+        </span>
+      `;
+      div.querySelector('.item-menu-btn').addEventListener('click', (e) => {
+        e.stopPropagation();
+        openMenuFor = (openMenuFor === menuKey) ? null : menuKey;
+        render();
+      });
+      const removeBtn = div.querySelector('[data-action="remove-store"]');
+      if (removeBtn){
+        removeBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const linkedReps = reps.filter(r => r.storeId === s.id);
+          const msg = linkedReps.length > 0
+            ? `"${s.name}" has ${linkedReps.length} store(s) linked to it. Removing it will also delete those store profiles. This can't be undone. Continue?`
+            : `Remove location "${s.name}"? This can't be undone.`;
+          openMenuFor = null;
+          render();
+          showConfirm(msg, () => {
+            reps = reps.filter(r => r.storeId !== s.id);
+            stores = stores.filter(x => x.id !== s.id);
+            persistStores(); persistList();
+            if (selectedStoreId === s.id){ selectedStoreId = 'ALL'; selectedRepId = null; }
+            render();
+          }, 'Remove location');
+        });
+      }
+      div.addEventListener('click', (e) => {
+        if (e.target.closest('.item-menu-wrap')) return; // menu clicks never select the row
+        selectedStoreId = s.id;
+        const inStore = reps.find(r => r.storeId === selectedStoreId);
+        selectedRepId = inStore ? inStore.id : null;
+        openMenuFor = null;
+        pickDefaultQuarter();
+        render();
+      });
+      list.appendChild(div);
+    });
+  }
+
+  function renderRepList(){
+    const heading = document.getElementById('repsHeading');
+    const isAll = selectedStoreId === 'ALL';
+    const store = stores.find(s => s.id === selectedStoreId);
+    heading.textContent = isAll ? 'All stores' : (store ? 'Stores — ' + store.name : 'Stores');
+
+    const list = document.getElementById('repList');
+    list.innerHTML = '';
+    const repsShown = isAll ? reps : reps.filter(r => r.storeId === selectedStoreId);
+    repsShown.forEach(r => {
+      const storeTag = isAll ? ` <span style="color:var(--dim); font-weight:400;">— ${(stores.find(s=>s.id===r.storeId)||{}).name || 'Unassigned'}</span>` : '';
+      const menuKey = 'rep:' + r.id;
+      const canRemove = true;
+      const div = document.createElement('div');
+      div.className = 'rep-item' + (r.id === selectedRepId ? ' selected' : '');
+      div.innerHTML = `
+        <span>${r.name}${storeTag}</span>
+        ${canRemove ? `
+          <span class="item-menu-wrap">
+            <button class="item-menu-btn" data-menu="${menuKey}" title="Options">⋯</button>
+            ${openMenuFor === menuKey ? `
+              <div class="item-menu">
+                <button class="danger" data-action="remove-rep" data-id="${r.id}">Remove store…</button>
+              </div>` : ''}
+          </span>` : ''}
+      `;
+      const menuBtn = div.querySelector('.item-menu-btn');
+      if (menuBtn){
+        menuBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          openMenuFor = (openMenuFor === menuKey) ? null : menuKey;
+          render();
+        });
+      }
+      const removeBtn = div.querySelector('[data-action="remove-rep"]');
+      if (removeBtn){
+        removeBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          openMenuFor = null;
+          render();
+          showConfirm(`Remove "${r.name}"'s profile? This can't be undone.`, () => {
+            reps = reps.filter(x => x.id !== r.id);
+            persistList();
+            if (selectedRepId === r.id){ selectedRepId = null; }
+            render();
+          }, 'Remove store');
+        });
+      }
+      div.addEventListener('click', (e) => {
+        if (e.target.closest('.item-menu-wrap')) return;
+        selectedRepId = r.id;
+        selectedStoreId = r.storeId; // exits aggregate mode into this store's real location
+        openMenuFor = null;
+        pickDefaultQuarter();
+        render();
+      });
+      list.appendChild(div);
+    });
+    if (repsShown.length === 0){
+      list.innerHTML = '<div style="font-size:12px; color:var(--dim); padding:6px 2px;">No stores linked yet.</div>';
+    }
+  }
+
+  // items: [{id, label, line, checked?}]. Shows a checklist + live text preview the user can copy or open in mail.
+  let emailModalState = null;
+  function updateEmailPreview(){
+    if (!emailModalState) return;
+    const checkedIds = Array.from(document.querySelectorAll('.email-item-cb:checked')).map(cb => cb.dataset.id);
+    const lines = emailModalState.items.filter(it => checkedIds.includes(it.id)).map(it => it.line);
+    const body = lines.join('\n\n');
+    document.getElementById('emailPreview').value = body;
+    document.getElementById('emailCopiedNote').style.display = 'none';
+    const mailtoUrl = `mailto:?subject=${encodeURIComponent(emailModalState.subject)}&body=${encodeURIComponent(body)}`;
+    document.getElementById('emailMailtoLink').href = mailtoUrl;
+  }
+  function openEmailModal(subject, items){
+    emailModalState = { subject, items };
+    const list = document.getElementById('emailItemsList');
+    list.innerHTML = items.map(it => `
+      <label style="display:flex; align-items:flex-start; gap:8px; font-size:12.5px; color:var(--text); text-transform:none; letter-spacing:0; line-height:1.4;">
+        <input type="checkbox" class="email-item-cb" data-id="${it.id}" ${it.checked === false ? '' : 'checked'} style="margin-top:2px;" />
+        <span>${it.label}</span>
+      </label>
+    `).join('');
+    list.querySelectorAll('.email-item-cb').forEach(cb => cb.addEventListener('change', updateEmailPreview));
+    updateEmailPreview();
+    document.getElementById('emailModal').style.display = 'flex';
+  }
+
+  function renderAggregate(){
+    let totalD2 = 0, totalC2 = 0;
+    const rows = stores.map(s => {
+      let sD2 = 0, sC2 = 0, repCount = 0;
+      reps.filter(r => r.storeId === s.id).forEach(r => {
+        const q = defaultQuarterForRep(r);
+        if (q){ const m = calc(q); sD2 += m.D2; sC2 += m.C2; repCount++; }
+      });
+      totalD2 += sD2; totalC2 += sC2;
+      return { name: s.name, D2: sD2, C2: sC2, pct: sC2 > 0 ? (sD2/sC2)*100 : 0, repCount };
+    });
+    const totalPct = totalC2 > 0 ? (totalD2/totalC2)*100 : 0;
+
+    const rowsHtml = rows.map(r => `
+      <div class="cell">
+        <div class="k">${r.name.toUpperCase()}</div>
+        <div class="v">${fmtInt(r.D2)} / ${fmtInt(r.C2)}</div>
+        <div class="d">${fmt(r.pct,1)}% of goal · ${r.repCount} store${r.repCount===1?'':'s'}</div>
+      </div>
+    `).join('');
+
+    // Compare & rank every individual store, sorted by % of goal (highest first)
+    const ranked = reps.map(r => {
+      const loc = stores.find(s => s.id === r.storeId);
+      const q = defaultQuarterForRep(r);
+      const m = q ? calc(q) : null;
+      return { name: r.name, loc: loc ? loc.name : 'Unassigned', D2: m ? m.D2 : 0, C2: m ? m.C2 : 0, pct: m && m.C2 > 0 ? (m.D2/m.C2)*100 : 0 };
+    }).sort((a,b) => b.pct - a.pct);
+
+    const rankRowsHtml = ranked.map((r, i) => `
+      <div style="display:flex; align-items:center; gap:12px; padding:9px 4px; border-bottom:1px solid var(--border); font-size:13px;">
+        <div style="width:22px; font-family:'IBM Plex Mono'; color:var(--dim); flex-shrink:0;">#${i+1}</div>
+        <div style="flex:1; min-width:0;">
+          <div style="font-weight:600; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${r.name}</div>
+          <div style="font-size:11px; color:var(--dim);">${r.loc}</div>
+        </div>
+        <div style="font-family:'IBM Plex Mono'; font-size:12.5px; color:var(--dim); flex-shrink:0;">${fmtInt(r.D2)}/${fmtInt(r.C2)}</div>
+        <div style="font-family:'IBM Plex Mono'; font-weight:700; width:52px; text-align:right; flex-shrink:0; color:${r.pct>=100?'var(--good)':'var(--text)'};">${fmt(r.pct,0)}%</div>
+      </div>
+    `).join('') || '<div style="font-size:12px; color:var(--dim); padding:8px 0;">No stores yet.</div>';
+
+    document.getElementById('metricsGrid').innerHTML = `
+      <div class="summary-card ${totalPct>=100?'hi':''}" style="margin-bottom:14px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+          <div class="s-eyebrow" style="margin-bottom:0;">All locations combined</div>
+          <button class="new-q-btn" id="emailAggBtn">Email report</button>
+        </div>
+        <ul class="summary-list">
+          <li><strong>${fmtInt(totalD2)}</strong> scripts completed across every store</li>
+          <li><strong>${fmt(totalPct,1)}%</strong> of the combined goal of <strong>${fmtInt(totalC2)}</strong> scripts</li>
+          <li><strong>${stores.length}</strong> location${stores.length===1?'':'s'}, <strong>${reps.length}</strong> store${reps.length===1?'':'s'} total</li>
+        </ul>
+      </div>
+      <div class="grid" style="margin-bottom:18px;">${rowsHtml}</div>
+      <div class="summary-card">
+        <div class="s-eyebrow">Compare &amp; rank stores — by % of goal</div>
+        <div style="margin-top:4px;">${rankRowsHtml}</div>
+      </div>
+    `;
+
+    document.getElementById('emailAggBtn').addEventListener('click', () => {
+      const subject = `Scripts report — all locations (${fmt(totalPct,1)}% of goal)`;
+      const items = [
+        { id:'totals', label:'Combined totals (scripts & % of goal)',
+          line:`All locations combined: ${fmtInt(totalD2)} / ${fmtInt(totalC2)} scripts (${fmt(totalPct,1)}%)` },
+        { id:'counts', label:'Location & store counts',
+          line:`${stores.length} location(s), ${reps.length} store(s) total` },
+        { id:'perLocation', label:'Per-location breakdown',
+          line: 'Per-location breakdown:\n' + rows.map(r => `${r.name}: ${fmtInt(r.D2)}/${fmtInt(r.C2)} (${fmt(r.pct,1)}%)`).join('\n') },
+        { id:'ranking', label:'Full store ranking',
+          line: 'Store ranking (by % of goal):\n' + ranked.map((r,i) => `${i+1}. ${r.name} (${r.loc}) — ${fmtInt(r.D2)}/${fmtInt(r.C2)} — ${fmt(r.pct,1)}%`).join('\n') },
+      ];
+      openEmailModal(subject, items);
+    });
+  }
+
+  document.getElementById('addStoreBtn').addEventListener('click', () => {
+    showPrompt('New location name', (name) => {
+      const id = 'store_' + Date.now();
+      stores.push({ id, name });
+      persistStores();
+      selectedStoreId = id;
+      selectedRepId = null;
+      render();
+    });
+  });
+
+  // --- Add-rep-profile modal: creates a profile and links it to a manager-chosen store ---
+  const addRepModal = document.getElementById('addRepModal');
+  document.getElementById('addRepBtn').addEventListener('click', () => {
+    const sel = document.getElementById('newRepStore');
+    sel.innerHTML = stores.map(s => `<option value="${s.id}" ${s.id===selectedStoreId?'selected':''}>${s.name}</option>`).join('');
+    document.getElementById('newRepName').value = '';
+    document.getElementById('newRepUserId').value = '';
+    document.getElementById('newRepError').style.display = 'none';
+    addRepModal.style.display = 'flex';
+    document.getElementById('newRepName').focus();
+  });
+  document.getElementById('cancelAddRep').addEventListener('click', () => { addRepModal.style.display = 'none'; });
+  document.getElementById('confirmAddRep').addEventListener('click', () => {
+    const name = document.getElementById('newRepName').value.trim();
+    const userId = document.getElementById('newRepUserId').value.trim();
+    const storeId = document.getElementById('newRepStore').value;
+    const errEl = document.getElementById('newRepError');
+    if (!name || !userId || !storeId){
+      errEl.textContent = 'Name, User ID, and location are all required.';
+      errEl.style.display = 'block';
+      return;
+    }
+    if (reps.some(r => r.userId === userId)){
+      errEl.textContent = `User ID "${userId}" is already linked to another profile — pick a unique one.`;
+      errEl.style.display = 'block';
+      return;
+    }
+    const id = 'rep_' + Date.now();
+    reps.push({ id, name, storeId, userId, quarters:[newQuarterObj(0)] });
+    persistList();
+    selectedStoreId = storeId;
+    selectedRepId = id;
+    addRepModal.style.display = 'none';
+    pickDefaultQuarter();
+    render();
+  });
+
+  function renderTimeline(rep, canManage){
+    const el = document.getElementById('timeline');
+    const source = canManage ? rep.quarters : rep.quarters.filter(q => !q.hidden);
+    const sorted = [...source].sort((a,b)=> a.start.localeCompare(b.start));
+    el.innerHTML = '';
+    sorted.forEach(q => {
+      const status = quarterStatus(q);
+      const menuKey = 'quarter:' + q.id;
+      const card = document.createElement('div');
+      card.className = 'q-card' + (q.id === selectedQId ? ' selected' : '') + (q.hidden ? ' q-hidden' : '');
+
+      let badgeArea;
+      if (canManage){
+        badgeArea = `
+          <span class="item-menu-wrap">
+            <button class="item-menu-btn" data-menu="${menuKey}" title="Options">⋯</button>
+            ${openMenuFor === menuKey ? `
+              <div class="item-menu">
+                <button data-action="toggle-lock" data-qid="${q.id}">${q.locked ? 'Unlock' : 'Lock'} quarter</button>
+                <button data-action="toggle-hide" data-qid="${q.id}">${q.hidden ? 'Unhide' : 'Hide'} quarter</button>
+                <button class="danger" data-action="delete-quarter" data-qid="${q.id}">Delete quarter…</button>
+              </div>` : ''}
+          </span>`;
+      } else {
+        badgeArea = q.locked ? `<span class="lock-btn is-locked" style="cursor:default;">🔒 Locked</span>` : '';
+      }
+
+      card.innerHTML = `
+        <div class="q-card-head">
+          <div class="qlabel">${q.label}</div>
+          ${badgeArea}
+        </div>
+        <div class="qrange">${q.start} → ${q.end}</div>
+        <span class="pill ${status}">${status}</span>
+        ${q.hidden ? '<span class="pill" style="background:var(--panel-2); color:var(--dim); margin-left:6px;">Hidden</span>' : ''}
+      `;
+      card.addEventListener('click', (e) => {
+        if (e.target.closest('.item-menu-wrap') || e.target.closest('.lock-btn')) return;
+        selectedQId = q.id;
+        render();
+      });
+      if (canManage){
+        const menuBtn = card.querySelector('.item-menu-btn');
+        menuBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          openMenuFor = (openMenuFor === menuKey) ? null : menuKey;
+          render();
+        });
+        const lockBtn = card.querySelector('[data-action="toggle-lock"]');
+        if (lockBtn) lockBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          openMenuFor = null;
+          updateQuarter(rep.id, q.id, { locked: !q.locked });
+        });
+        const hideBtn = card.querySelector('[data-action="toggle-hide"]');
+        if (hideBtn) hideBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          openMenuFor = null;
+          updateQuarter(rep.id, q.id, { hidden: !q.hidden });
+        });
+        const delBtn = card.querySelector('[data-action="delete-quarter"]');
+        if (delBtn) delBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          openMenuFor = null;
+          render();
+          showConfirm(`Delete "${q.label}"? All its daily entries and settings will be permanently lost.`, () => {
+            const r = getRep(rep.id);
+            if (!r) return;
+            r.quarters = r.quarters.filter(x => x.id !== q.id);
+            persistList();
+            if (selectedQId === q.id){ pickDefaultQuarter(); }
+            render();
+          }, 'Delete quarter');
+        });
+      }
+      el.appendChild(card);
+    });
+  }
+
+  document.getElementById('newQBtn').addEventListener('click', () => {
+    const rep = getRep(selectedRepId);
+    if (!rep) return;
+    const nq = newQuarterObj(rep.quarters.length ? 1 : 0);
+    const sorted = [...rep.quarters].sort((a,b)=> b.end.localeCompare(a.end));
+    if (sorted[0]){
+      const start = new Date(sorted[0].end); start.setDate(start.getDate()+1);
+      const end = new Date(start); end.setMonth(end.getMonth()+3); end.setDate(end.getDate()-1);
+      nq.start = start.toISOString().slice(0,10);
+      nq.end = end.toISOString().slice(0,10);
+      nq.label = quarterLabel(nq.start);
+    }
+    rep.quarters.push(nq);
+    persistList();
+    selectedQId = nq.id;
+    render();
+  });
+
+  function renderLockedBanner(q){
+    const wrap = document.getElementById('lockedBannerWrap');
+    if (q.locked && role === 'rep'){
+      wrap.innerHTML = `<div class="locked-banner">🔒 This quarter was locked by your manager — it's read-only.</div>`;
+    } else {
+      wrap.innerHTML = '';
+    }
+  }
+
+  function renderMissingPrompt(rep, q){
+    const wrap = document.getElementById('missingWrap');
+    const repLocked = role === 'rep' && q.locked;
+    const today = todayISO();
+    const hasToday = q.dailyLog && q.dailyLog[today] !== undefined;
+    const missing = missingDays(q).filter(d => d !== today);
+    if (repLocked || missing.length === 0 || hasToday){ wrap.innerHTML = ''; return; }
+
+    const rowsHtml = missing.map(d => {
+      const dateObj = new Date(d);
+      const niceDate = dateObj.toLocaleDateString(undefined, {weekday:'short', month:'short', day:'numeric'});
+      return `<div class="missing-row">
+        <span class="mdate">${niceDate}</span>
+        <input type="number" placeholder="0" data-date="${d}" />
+      </div>`;
+    }).join('');
+
+    wrap.innerHTML = `
+      <div class="missing-prompt">
+        <div class="mp-head">You have ${missing.length} day${missing.length>1?'s':''} without an entry — fill them in:</div>
+        <div class="missing-rows">${rowsHtml}</div>
+      </div>
+    `;
+    wrap.querySelectorAll('.missing-row input').forEach(inp => {
+      inp.addEventListener('change', e => {
+        updateDailyLog(rep.id, q.id, e.target.dataset.date, e.target.value);
+      });
+    });
+  }
+
+  function renderRepProfile(rep, q, m){
+    const wrap = document.getElementById('repProfileWrap');
+    if (role !== 'manager'){ wrap.innerHTML = ''; return; }
+    const noId = !rep.userId;
+    wrap.innerHTML = `
+      <div class="setup-row" style="${noId ? 'border-color:var(--warn);' : ''}">
+        <div class="field"><label>Store profile name</label><input type="text" id="fRepName" value="${rep.name}" style="width:150px;" /></div>
+        <div class="field"><label>Linked User ID (for login)</label><input type="text" id="fRepUserId" value="${rep.userId || ''}" placeholder="e.g. jsmith" style="width:150px;" /></div>
+        <div class="field" style="justify-content:flex-end; gap:6px; flex-direction:row;">
+          <button class="new-q-btn" id="previewStoreBtn" style="height:34px; margin-top:auto;" ${noId ? 'disabled title="Set a User ID first"' : ''}>Preview as this store</button>
+          <button class="new-q-btn" id="emailStoreBtn" style="height:34px; margin-top:auto;">Email report</button>
+        </div>
+        <div class="lock-note" id="repIdHint" style="${noId ? 'color:var(--warn);' : ''}">${noId ? 'No User ID set — this profile can\'t be logged into or previewed yet.' : 'This is the ID the store enters to sign in.'}</div>
+      </div>
+    `;
+    wrap.querySelector('#fRepName').addEventListener('change', e => {
+      const val = e.target.value.trim();
+      if (val) updateRep(rep.id, { name: val });
+    });
+    wrap.querySelector('#fRepUserId').addEventListener('change', e => {
+      const val = e.target.value.trim();
+      if (val && reps.some(r => r.userId === val && r.id !== rep.id)){
+        document.getElementById('repIdHint').textContent = `"${val}" is already used by another profile — pick a unique ID.`;
+        document.getElementById('repIdHint').style.color = 'var(--bad)';
+        e.target.value = rep.userId || '';
+        return;
+      }
+      updateRep(rep.id, { userId: val || null });
+    });
+    const previewBtn = document.getElementById('previewStoreBtn');
+    if (previewBtn && !noId){
+      previewBtn.addEventListener('click', () => {
+        role = 'rep';
+        myUserId = rep.userId;
+        persistRole();
+        persistMyUserId();
+        render();
+      });
+    }
+    document.getElementById('emailStoreBtn').addEventListener('click', () => {
+      const subject = `Scripts report — ${rep.name} (${q.label})`;
+      const items = [
+        { id:'identity', label:'Store name & quarter',
+          line:`Store: ${rep.name}\nQuarter: ${q.label} (${q.start} to ${q.end})` },
+        { id:'completed', label:'Scripts completed & % of goal',
+          line:`Scripts completed: ${fmtInt(m.D2)} / ${fmtInt(m.C2)} (${fmt(m.F2,1)}% of goal)` },
+        { id:'stretch', label:'105% stretch target',
+          line:`Stretch target (105%): ${fmtInt(m.B2)} — ${fmt(m.E2,1)}% there` },
+        { id:'bizdays', label:'Business days used',
+          line:`Business days used: ${fmtInt(m.P2)} / ${fmtInt(m.totalBizDays)} (${fmt(m.G2,1)}%)` },
+        { id:'remaining100', label:'Remaining for 100% goal',
+          line:`Remaining for 100%: ${fmtInt(m.N2)} scripts (~${fmt(m.O2,1)}/day)` },
+        { id:'remaining105', label:'Remaining for 105% goal',
+          line:`Remaining for 105%: ${fmtInt(m.L2)} scripts (~${fmt(m.M2,1)}/day)` },
+      ];
+      openEmailModal(subject, items);
+    });
+  }
+
+  function renderSetup(rep, q){
+    const managerEdit = role === 'manager';
+    const repLocked = role === 'rep' && q.locked;
+    const canEditToday = !repLocked;
+    const today = todayISO();
+    const todayVal = (q.dailyLog && q.dailyLog[today] !== undefined) ? q.dailyLog[today] : '';
+    const el = document.getElementById('setupRow');
+    el.innerHTML = `
+      ${managerEdit ? `<div class="field"><label>Quarter name</label><input type="text" id="fLabel" value="${q.label}" style="width:150px;" /></div>` : ''}
+      <div class="field"><label>Quarter start</label><input type="date" id="fStart" value="${q.start}" ${managerEdit ? '' : 'disabled'} /></div>
+      <div class="field"><label>Quarter end</label><input type="date" id="fEnd" value="${q.end}" ${managerEdit ? '' : 'disabled'} /></div>
+      <div class="field"><label>Goal (C2) — scripts for 100%</label><input type="number" id="fGoal" value="${q.goal}" ${managerEdit ? '' : 'disabled'} /></div>
+      <div class="field"><label>Today's scripts (${today})</label><input type="number" id="fToday" value="${todayVal}" placeholder="0" ${canEditToday ? '' : 'disabled'} /></div>
+      <div class="lock-note">${managerEdit ? 'Manager can edit any field, locked or not.' : (repLocked ? '' : 'Enter each day once — your total updates automatically.')}</div>
+    `;
+    if (managerEdit){
+      el.querySelector('#fLabel').addEventListener('change', e => updateQuarter(rep.id, q.id, {label: e.target.value.trim() || q.label}));
+      el.querySelector('#fStart').addEventListener('change', e => updateQuarter(rep.id, q.id, {start: e.target.value}));
+      el.querySelector('#fEnd').addEventListener('change', e => updateQuarter(rep.id, q.id, {end: e.target.value}));
+      el.querySelector('#fGoal').addEventListener('change', e => updateQuarter(rep.id, q.id, {goal: Number(e.target.value)}));
+    }
+    if (canEditToday){
+      el.querySelector('#fToday').addEventListener('change', e => updateDailyLog(rep.id, q.id, today, e.target.value));
+    }
+    renderManualEntry(rep, q, managerEdit);
+  }
+
+  // Manager-only: log or correct any date's entry, not just today or a flagged-missing day
+  function renderManualEntry(rep, q, managerEdit){
+    const wrap = document.getElementById('manualEntryWrap');
+    if (!managerEdit){ wrap.innerHTML = ''; return; }
+    const ob = q.openingBalance;
+    const y = new Date(todayISO()); y.setDate(y.getDate() - 1);
+    const yesterday = y.toISOString().slice(0,10);
+    const suggestedThrough = yesterday < q.start ? q.start : (yesterday > q.end ? q.end : yesterday);
+    const showForm = !ob || obEditModeForQId === q.id;
+
+    if (!showForm){
+      // saved and collapsed — just a compact summary, no input fields taking up space
+      wrap.innerHTML = `
+        <div class="setup-row" style="margin-top:-8px; align-items:center;">
+          <div class="lock-note" style="margin-left:0;">Starting point: <strong style="color:var(--text);">${fmtInt(ob.amount)} scripts</strong> through <strong style="color:var(--text);">${ob.throughDate}</strong>.</div>
+          <button class="new-q-btn" id="obEditBtn">Edit</button>
+        </div>
+        <div id="manualEntryDateWrap"></div>
+      `;
+      document.getElementById('obEditBtn').addEventListener('click', () => {
+        obEditModeForQId = q.id;
+        render();
+      });
+      renderDateEntry(rep, q);
+      return;
+    }
+
+    wrap.innerHTML = `
+      <div class="setup-row" style="margin-top:-8px;">
+        <div class="field"><label>Starting total (catch-up)</label><input type="number" id="obAmount" value="${ob ? ob.amount : ''}" placeholder="0" /></div>
+        <div class="field"><label>Covers everything through</label><input type="date" id="obThrough" value="${ob ? ob.throughDate : suggestedThrough}" min="${q.start}" max="${q.end}" /></div>
+        <div class="field" style="justify-content:flex-end; gap:6px; flex-direction:row;">
+          <button class="new-q-btn" id="obSave" style="height:34px; margin-top:auto;">Save starting point</button>
+          ${ob ? `<button class="new-q-btn" id="obCancel" style="height:34px; margin-top:auto;">Cancel</button>
+                  <button class="new-q-btn" id="obClear" style="height:34px; margin-top:auto; color:var(--bad); border-color:var(--bad);">Clear</button>` : ''}
+        </div>
+        <div class="lock-note">${ob ? '' : 'Quarter already underway? Enter the running total to date instead of backfilling every day — daily entries pick up from the next day.'}</div>
+      </div>
+      <div id="manualEntryDateWrap"></div>
+    `;
+    document.getElementById('obSave').addEventListener('click', () => {
+      const amount = Number(document.getElementById('obAmount').value) || 0;
+      const throughDate = document.getElementById('obThrough').value;
+      obEditModeForQId = null;
+      updateQuarter(rep.id, q.id, { openingBalance: { amount, throughDate } });
+    });
+    const cancelBtn = document.getElementById('obCancel');
+    if (cancelBtn){
+      cancelBtn.addEventListener('click', () => { obEditModeForQId = null; render(); });
+    }
+    const clearBtn = document.getElementById('obClear');
+    if (clearBtn){
+      clearBtn.addEventListener('click', () => {
+        showConfirm('Clear the starting-point total? Days before it will show as missing again.', () => {
+          obEditModeForQId = null;
+          updateQuarter(rep.id, q.id, { openingBalance: null });
+        }, 'Clear starting point');
+      });
+    }
+    renderDateEntry(rep, q);
+  }
+
+  function renderDateEntry(rep, q){
+    const wrap = document.getElementById('manualEntryDateWrap');
+    if (!wrap) return;
+    const defaultDate = q.start;
+    wrap.innerHTML = `
+      <div class="setup-row" style="margin-top:10px;">
+        <div class="field"><label>Log entry for date</label><input type="date" id="mEntryDate" value="${defaultDate}" min="${q.start}" max="${q.end}" /></div>
+        <div class="field"><label>Scripts that day</label><input type="number" id="mEntryVal" placeholder="0" /></div>
+        <div class="field" style="justify-content:flex-end;"><button class="new-q-btn" id="mEntrySave" style="height:34px; margin-top:auto;">Save entry</button></div>
+        <div class="lock-note" id="mEntryHint">Pick any date in the quarter to add or correct a day's total.</div>
+      </div>
+    `;
+    const dateInput = wrap.querySelector('#mEntryDate');
+    const valInput = wrap.querySelector('#mEntryVal');
+    const hint = wrap.querySelector('#mEntryHint');
+    function syncVal(){
+      const existing = q.dailyLog && q.dailyLog[dateInput.value] !== undefined ? q.dailyLog[dateInput.value] : '';
+      valInput.value = existing;
+      const d = new Date(dateInput.value);
+      hint.textContent = isWeekend(d)
+        ? 'Heads up — that date falls on a weekend.'
+        : (existing !== '' ? 'This date already has an entry — saving will overwrite it.' : 'No entry yet for this date.');
+    }
+    syncVal();
+    dateInput.addEventListener('change', syncVal);
+    wrap.querySelector('#mEntrySave').addEventListener('click', () => {
+      updateDailyLog(rep.id, q.id, dateInput.value, valInput.value);
+    });
+  }
+
+  function renderTrack(q, m){
+    const goalPct = Math.min(m.F2, 100);
+    const elapsedPct = Math.min(m.G2, 100);
+    const expectedPts = m.I2 * m.P2; // scripts you'd have by now if exactly on 100%-goal pace
+    const diff = m.D2 - expectedPts;
+    let color = 'var(--warn)', status = 'On pace', dotColor = 'var(--warn)';
+    if (m.F2 - m.G2 > 3){ color='var(--good)'; status='Ahead of pace'; dotColor='var(--good)'; }
+    else if (m.G2 - m.F2 > 3){ color='var(--bad)'; status='Behind pace'; dotColor='var(--bad)'; }
+
+    document.getElementById('paceTrack').innerHTML = `
+      <div class="lbl-row"><span>${fmtInt(m.D2)} of ${fmtInt(m.C2)} scripts completed</span><span>Pace target: ${fmtInt(expectedPts)} by now</span></div>
+      <div class="track">
+        <div class="fill" style="width:${goalPct}%; background:${color};"></div>
+        <div class="marker" style="left:${elapsedPct}%;"></div>
+      </div>
+      <div class="status-line">
+        <div class="status-dot" style="background:${dotColor};"></div>
+        <span><strong>${status}</strong> — ${fmtInt(m.D2)} scripts completed vs. ${fmtInt(expectedPts)} scripts expected at this point (${diff>=0?'+':''}${fmtInt(diff)} scripts).</span>
+      </div>
+    `;
+  }
+
+  function renderGrid(m){
+    const cells = [
+      ['B2','105% target (total)', fmtInt(m.B2), 'Total scripts needed for 105% of goal'],
+      ['C2','100% target (total)', fmtInt(m.C2), 'Total scripts needed for 100% of goal'],
+      ['D2','Completed so far', fmtInt(m.D2), 'Scripts logged this quarter — entered daily by store or admin'],
+      ['E2','% to 105%', fmt(m.E2,1)+'%', 'How far you are toward the 105% target'],
+      ['F2','% to 100%', fmt(m.F2,1)+'%', 'How far you are toward the 100% target'],
+      ['G2','% through quarter', fmt(m.G2,1)+'%', 'Business days elapsed vs. total business days'],
+      ['H2','Needed/biz-day — 105%', fmt(m.H2,2), 'Per-business-day pace across the full quarter for 105%'],
+      ['I2','Needed/biz-day — 100%', fmt(m.I2,2), 'Per-business-day pace across the full quarter for 100%'],
+      ['J2','Actual/biz-day so far', fmt(m.J2,2), 'Actual average per business day so far'],
+      ['K2','Daily diff vs. 100%', (m.K2>=0?'+':'')+fmt(m.K2,2), 'Actual/biz-day minus 100%-pace/biz-day'],
+      ['L2','Remaining for 105%', fmtInt(m.L2), 'Scripts still needed to hit 105%'],
+      ['M2','Needed/biz-day rest — 105%', fmt(m.M2,2), 'Per-business-day pace in remaining biz days for 105%'],
+      ['N2','Remaining for 100%', fmtInt(m.N2), 'Scripts still needed to hit 100%'],
+      ['O2','Needed/biz-day rest — 100%', fmt(m.O2,2), 'Per-business-day pace in remaining biz days for 100%'],
+      ['P2','Business days elapsed', fmtInt(m.P2) + ' / ' + fmtInt(m.totalBizDays), 'Auto-calculated — +1 each weekday, weekends excluded'],
+    ];
+    const grid = document.getElementById('metricsGrid');
+    grid.className = 'grid';
+    grid.innerHTML = cells.map(([tag,label,val,desc]) => {
+      let cls = '';
+      if (tag === 'K2') cls = m.K2 >= 0 ? 'hi' : 'lo';
+      return `<div class="cell ${cls}"><div class="k">${tag} · ${label}</div><div class="v">${val}</div><div class="d">${desc}</div></div>`;
+    }).join('');
+  }
+
+  function friendlyPace(m){
+    const gap = m.F2 - m.G2;
+    if (gap > 3) return { verb: "ahead of pace", tone: "hi" };
+    if (gap < -3) return { verb: "behind pace", tone: "lo" };
+    return { verb: "right on pace", tone: "" };
+  }
+
+  function renderRepSignedIn(rep){
+    const wrap = document.getElementById('repSignedInWrap');
+    wrap.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:center; font-size:12px; color:var(--dim);">
+        <span>Signed in as <strong style="color:var(--text);">${rep.name}</strong></span>
+        <button class="new-q-btn" id="switchUserBtn" style="font-size:11px; padding:3px 9px;">Switch user</button>
+      </div>
+    `;
+    document.getElementById('switchUserBtn').addEventListener('click', () => {
+      myUserId = null;
+      persistMyUserId();
+      render();
+    });
+  }
+
+  function renderFriendlySummary(q, m, rep){
+    const grid = document.getElementById('metricsGrid');
+    grid.className = '';
+    const pace = friendlyPace(m);
+    const daysWord = m.remainingBizDays === 1 ? "business day" : "business days";
+    grid.innerHTML = `
+      <div class="summary-card ${pace.tone}">
+        <div class="s-eyebrow">Your progress</div>
+        <ul class="summary-list">
+          <li><strong>${fmtInt(m.D2)}</strong> scripts completed so far this quarter</li>
+          <li><strong>${fmt(m.F2,1)}%</strong> of your goal of <strong>${fmtInt(m.C2)}</strong> scripts</li>
+          <li>You're <strong>${pace.verb}</strong> — ${fmt(m.G2,1)}% of the quarter's business days used</li>
+          <li><strong>${fmtInt(m.N2)}</strong> scripts left for <strong>100% of goal</strong> — about <strong>${fmt(m.O2,1)}/day</strong> over the next <strong>${fmtInt(m.remainingBizDays)} ${daysWord}</strong></li>
+          <li><strong>${fmtInt(m.L2)}</strong> scripts left for the <strong>105% stretch target</strong> — about <strong>${fmt(m.M2,1)}/day</strong> in that same time</li>
+        </ul>
+      </div>
+    `;
+
+  }
+
+  document.getElementById('roleToggle').addEventListener('click', (e) => {
+    const btn = e.target.closest('button');
+    if (!btn) return;
+    role = btn.dataset.role;
+    persistRole();
+    render();
+  });
+
+  document.addEventListener('click', () => {
+    if (openMenuFor !== null){ openMenuFor = null; render(); }
+  });
+
+  // --- Custom in-app confirm/prompt modals (replace native confirm()/prompt(),
+  //     which can be blocked or unreliable inside a sandboxed artifact frame) ---
+  let confirmCallback = null;
+  function showConfirm(message, onConfirm, title){
+    document.getElementById('confirmTitle').textContent = title || 'Are you sure?';
+    document.getElementById('confirmMsg').textContent = message;
+    confirmCallback = onConfirm;
+    document.getElementById('confirmModal').style.display = 'flex';
+  }
+  document.getElementById('confirmCancelBtn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    document.getElementById('confirmModal').style.display = 'none';
+    confirmCallback = null;
+  });
+  document.getElementById('confirmOkBtn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    document.getElementById('confirmModal').style.display = 'none';
+    const cb = confirmCallback; confirmCallback = null;
+    if (cb) cb();
+  });
+
+  let promptCallback = null;
+  function showPrompt(title, onSubmit){
+    document.getElementById('promptTitle').textContent = title;
+    const input = document.getElementById('promptInput');
+    input.value = '';
+    promptCallback = onSubmit;
+    document.getElementById('textPromptModal').style.display = 'flex';
+    setTimeout(() => input.focus(), 50);
+  }
+  document.getElementById('promptCancelBtn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    document.getElementById('textPromptModal').style.display = 'none';
+    promptCallback = null;
+  });
+  document.getElementById('promptOkBtn').addEventListener('click', (e) => {
+    e.stopPropagation();
+    const val = document.getElementById('promptInput').value.trim();
+    document.getElementById('textPromptModal').style.display = 'none';
+    const cb = promptCallback; promptCallback = null;
+    if (val && cb) cb(val);
+  });
+  document.getElementById('promptInput').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') document.getElementById('promptOkBtn').click();
+  });
+
+  document.getElementById('emailCancelBtn').addEventListener('click', () => {
+    document.getElementById('emailModal').style.display = 'none';
+    emailModalState = null;
+  });
+  document.getElementById('emailCopyBtn').addEventListener('click', async () => {
+    const text = document.getElementById('emailPreview').value;
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch(e){
+      // fallback for environments without clipboard API access
+      const ta = document.getElementById('emailPreview');
+      ta.focus(); ta.select();
+      try { document.execCommand('copy'); } catch(e2){}
+    }
+    document.getElementById('emailCopiedNote').style.display = 'block';
+  });
+  document.getElementById('emailMailtoLink').addEventListener('click', () => {
+    document.getElementById('emailModal').style.display = 'none';
+    emailModalState = null;
+  });
+
+  init();
+})();
+</script>
